@@ -12,12 +12,10 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
-    - name: Deploy via SSH
-      uses: easingthemes/ssh-deploy@main
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-        REMOTE_USER: ${{ secrets.REMOTE_USER }}
-        SOURCE: "src/"
-        TARGET: ${{ secrets.REMOTE_TARGET }}
+    
+    - name: Create identity file
+      run: echo "${{ secrets.SSH_PRIVATE_KEY }}" > secret && chmod 600 secret
+    
+    - name: Deploy
+      run: |
+        rsync ./src/ ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}:22 --rsh "ssh -p 22 -i secret -o StrictHostKeyChecking=no" --recursive --exclude= -rlgoDzvc -i
